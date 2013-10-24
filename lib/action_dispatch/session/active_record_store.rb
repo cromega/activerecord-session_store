@@ -61,23 +61,21 @@ module ActionDispatch
 
       private
         def get_session(env, sid)
-          ActiveRecord::Base.logger.quietly do
-            session = @@session_class.find_by_session_id(sid)
-            if session && Time.now.to_i - session.created_at.to_i > 10000
-              session.destroy
-              session = nil
-            end
-
-            unless session
-              # If the sid was nil or if there is no pre-existing session under the sid,
-              # force the generation of a new sid and associate a new session associated with the new sid
-              sid = generate_sid
-              session = @@session_class.new(:session_id => sid, :data => {})
-            end
-
-            env[SESSION_RECORD_KEY] = session
-            [sid, session.data]
+          session = @@session_class.find_by_session_id(sid)
+          if session @default_options[:expire_after] && Time.now.to_i - session.created_at.to_i > @default_options[:expire_after]
+            session.destroy
+            session = nil
           end
+
+          unless session
+            # If the sid was nil or if there is no pre-existing session under the sid,
+            # force the generation of a new sid and associate a new session associated with the new sid
+            sid = generate_sid
+            session = @@session_class.new(:session_id => sid, :data => {})
+          end
+
+          env[SESSION_RECORD_KEY] = session
+          [sid, session.data]
         end
 
         def set_session(env, sid, session_data, options)
