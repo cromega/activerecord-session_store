@@ -63,7 +63,7 @@ module ActionDispatch
         def get_session(env, sid)
           session = @@session_class.find_by_session_id(sid)
           expires_after = @default_options[:expire_after]
-          if session && expires_after && Time.now.to_i - session.created_at.to_i > expires_after
+          if session && expires_after && Time.current.to_i - session.created_at.to_i > expires_after
             session.destroy
             session = nil
           end
